@@ -369,25 +369,27 @@ export default function ReaderShell({ surah, surahList }: ReaderShellProps) {
             </div>
 
             <div className="mt-6 space-y-6">
+              {/* Arabic Font */}
               <div className="space-y-3">
                 <p className="text-sm font-semibold">Arabic Font</p>
                 <div className="grid gap-2">
-                  {(Object.keys(arabicFontOptions) as Array<Settings["arabicFont"]>).map((key) => (
+                  {(["amiri", "scheherazade"] as const).map((font) => (
                     <button
-                      key={key}
-                      onClick={() => setSettings((prev) => ({ ...prev, arabicFont: key }))}
+                      key={font}
+                      onClick={() => updateSettings({ arabicFont: font })}
                       className={`rounded-xl border px-4 py-2 text-left text-sm transition ${
-                        settings.arabicFont === key
+                        settings.arabicFont === font
                           ? "border-[var(--accent)] bg-[var(--surface-2)]"
                           : "border-[var(--border-color)] bg-transparent hover:bg-[var(--surface-2)]"
                       }`}
                     >
-                      {arabicFontOptions[key].label}
+                      {font === "amiri" ? "Amiri" : "Scheherazade New"}
                     </button>
                   ))}
                 </div>
               </div>
 
+              {/* Arabic Size */}
               <div className="space-y-3">
                 <p className="text-sm font-semibold">Arabic Font Size</p>
                 <input
@@ -395,14 +397,13 @@ export default function ReaderShell({ surah, surahList }: ReaderShellProps) {
                   min={24}
                   max={48}
                   value={settings.arabicSize}
-                  onChange={(event) =>
-                    setSettings((prev) => ({ ...prev, arabicSize: Number(event.target.value) }))
-                  }
+                  onChange={(e) => updateSettings({ arabicSize: Number(e.target.value) })}
                   className="w-full"
                 />
                 <p className="text-xs text-[var(--text-dim)]">{settings.arabicSize}px</p>
               </div>
 
+              {/* Translation Size */}
               <div className="space-y-3">
                 <p className="text-sm font-semibold">Translation Font Size</p>
                 <input
@@ -410,9 +411,7 @@ export default function ReaderShell({ surah, surahList }: ReaderShellProps) {
                   min={12}
                   max={22}
                   value={settings.translationSize}
-                  onChange={(event) =>
-                    setSettings((prev) => ({ ...prev, translationSize: Number(event.target.value) }))
-                  }
+                  onChange={(e) => updateSettings({ translationSize: Number(e.target.value) })}
                   className="w-full"
                 />
                 <p className="text-xs text-[var(--text-dim)]">{settings.translationSize}px</p>
@@ -427,24 +426,12 @@ export default function ReaderShell({ surah, surahList }: ReaderShellProps) {
   );
 }
 
-type IconProps = { className?: string };
+/**
+ * SVG Icon components
+ */
 
-type IconButtonProps = {
-  label: string;
-  children: ReactNode;
-  onClick?: () => void;
-};
-
-function IconButton({ label, children, onClick }: IconButtonProps) {
-  return (
-    <button
-      onClick={onClick}
-      className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border-color)] bg-[var(--surface-2)] text-[var(--text-primary)] transition hover:bg-[var(--surface-3)]"
-      aria-label={label}
-    >
-      {children}
-    </button>
-  );
+interface IconProps {
+  className?: string;
 }
 
 function BookIcon({ className }: IconProps) {
