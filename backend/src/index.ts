@@ -1,5 +1,4 @@
 import { Hono } from "hono";
-import { cors } from "hono/cors";
 import { serve } from "@hono/node-server";
 import fs from "node:fs";
 import path from "node:path";
@@ -62,7 +61,16 @@ const searchAyahs = (query: string) => {
 
 const app = new Hono();
 
-app.use("*", cors({ origin: "*" }));
+// CORS middleware
+app.use("*", async (c, next) => {
+  c.header("Access-Control-Allow-Origin", "*");
+  c.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  c.header("Access-Control-Allow-Headers", "Content-Type");
+  if (c.req.method === "OPTIONS") {
+    return c.text("", 200);
+  }
+  await next();
+});
 
 app.get("/search", (c) => {
   const query = (c.req.query("q") ?? "").trim();
@@ -75,8 +83,13 @@ app.get("/search", (c) => {
   return c.json({ results });
 });
 
+app.get("/", (c) => {
+  return c.json({ message: "Quran API v1", endpoint: "/search?q=..." });
+});
+
 const port = Number(process.env.PORT ?? 3001);
 
 serve({ fetch: app.fetch, port });
 
 console.log(`Hono API running on http://localhost:${port}`);
+
