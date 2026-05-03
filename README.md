@@ -88,44 +88,20 @@ PORT=3001
 
 ## Deployment
 
-For detailed step-by-step deployment instructions, see [PRODUCTION_DEPLOYMENT.md](./PRODUCTION_DEPLOYMENT.md).
+### 🚀 Deploy Both to Vercel (Recommended)
 
-### Quick Deployment Summary
+For detailed step-by-step instructions to deploy **both frontend and backend to Vercel**:
 
-#### Frontend (Vercel)
+👉 **[VERCEL_BOTH_DEPLOYMENT.md](./VERCEL_BOTH_DEPLOYMENT.md)** - Complete guide for dual-Vercel deployment
 
-1. **Via Dashboard:**
-   - Go to [Vercel Dashboard](https://vercel.com)
-   - Click "Add New..." → "Project"
-   - Import GitHub repo `rafiqul4/maxcode`
-   - Set **Root Directory** → `frontend`
-   - Set environment variable: `NEXT_PUBLIC_API_BASE_URL` = backend URL
-   - Click Deploy
+**Quick Summary:**
+1. Create Backend Vercel project (root: `backend`) - get backend URL
+2. Create Frontend Vercel project (root: `frontend`) with env var pointing to backend
+3. Both deploy automatically on git push
 
-2. **Via CLI:**
-   ```bash
-   npm install -g vercel
-   cd frontend
-   vercel
-   ```
+### Alternative: Frontend on Vercel, Backend on Render
 
-#### Backend (Render)
-
-1. Go to [Render](https://render.com)
-2. Click "New+" → "Web Service"
-3. Connect GitHub repo `rafiqul4/maxcode`
-4. Configure:
-   - **Root Directory:** `backend`
-   - **Build Command:** `npm install && npm run build`
-   - **Start Command:** `npm start`
-5. Deploy
-
-#### Connect Frontend to Backend
-
-After backend deployment:
-1. Copy backend URL (e.g., `https://quran-backend.onrender.com`)
-2. Update Vercel environment variable `NEXT_PUBLIC_API_BASE_URL`
-3. Trigger redeploy in Vercel
+If you prefer different hosting providers, see [PRODUCTION_DEPLOYMENT.md](./PRODUCTION_DEPLOYMENT.md)
 
 ---
 

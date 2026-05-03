@@ -1,8 +1,23 @@
 {
+  "projectSettings": {
+    "note": "This monorepo requires TWO separate Vercel projects",
+    "setup": "See VERCEL_BOTH_DEPLOYMENT.md for detailed instructions"
+  },
   "projects": [
     {
+      "name": "frontend",
       "src": "frontend",
-      "use": "@vercelprojects/next"
+      "rootDirectory": "frontend",
+      "framework": "nextjs",
+      "description": "Create this as one Vercel project with root: frontend"
+    },
+    {
+      "name": "backend",
+      "src": "backend",
+      "rootDirectory": "backend",
+      "framework": "nodejs",
+      "description": "Create this as separate Vercel project with root: backend"
     }
   ]
 }
+
