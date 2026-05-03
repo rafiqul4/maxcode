@@ -24,6 +24,10 @@
 # production
 /build
 /backend/dist
+/backend/api/*.js
+/backend/api/*.js.map
+/backend/api/*.d.ts
+/backend/api/*.d.ts.map
 
 # misc
 .DS_Store
