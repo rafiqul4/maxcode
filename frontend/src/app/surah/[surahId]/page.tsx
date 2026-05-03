@@ -7,12 +7,12 @@ export async function generateStaticParams() {
   }));
 }
 
-export default async function SurahPage({
+export default function SurahPage({
   params,
 }: {
-  params: Promise<{ surahId: string }>;
+  params: { surahId: string };
 }) {
-  const { surahId } = await params;
+  const { surahId } = params;
   const id = Number(surahId);
   const surah = getSurahById(id);
 

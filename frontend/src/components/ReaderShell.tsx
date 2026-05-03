@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { Surah, SurahMeta } from "@/lib/quran";
 
 type ReaderShellProps = {
@@ -42,6 +42,7 @@ const arabicFontOptions = {
 };
 
 const settingsStorageKey = "quran.settings";
+const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001";
 
 const formatSurahNumber = (id: number) => id.toString().padStart(2, "0");
 
@@ -121,7 +122,7 @@ export default function ReaderShell({ surah, surahList }: ReaderShellProps) {
 
     const handle = setTimeout(async () => {
       try {
-        const response = await fetch(`/api/search?q=${encodeURIComponent(trimmed)}`);
+        const response = await fetch(`${apiBaseUrl}/search?q=${encodeURIComponent(trimmed)}`);
         const data = (await response.json()) as { results: SearchResult[] };
         setResults(data.results ?? []);
       } catch {
@@ -467,7 +468,7 @@ type IconProps = { className?: string };
 
 type IconButtonProps = {
   label: string;
-  children: React.ReactNode;
+  children: ReactNode;
   onClick?: () => void;
 };
 

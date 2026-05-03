@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+:root {
+  --app-bg: #0a0a0d;
+  --sidebar-bg: #0f1016;
+  --surface-1: #11131b;
+  --surface-2: #181a24;
+  --surface-3: #202233;
+  --border-color: #2b2e3f;
+  --accent: #f0b429;
+  --accent-contrast: #1a1b20;
+  --text-primary: #f7f3ea;
+  --text-muted: #c5c2b8;
+  --text-dim: #9f9b8d;
+  --card-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
+  --arabic-font: var(--font-amiri);
+  --arabic-size: 34px;
+  --translation-size: 16px;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+@theme inline {
+  --color-background: var(--app-bg);
+  --color-foreground: var(--text-primary);
+  --font-sans: var(--font-sora);
+  --font-mono: var(--font-mono);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-sora), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: radial-gradient(1200px 700px at 10% -10%, rgba(240, 180, 41, 0.08), transparent 60%),
+    radial-gradient(900px 600px at 100% 0%, rgba(90, 138, 255, 0.08), transparent 65%),
+    var(--app-bg);
+  color: var(--text-primary);
+}
+
+.arabic-text {
+  font-family: var(--arabic-font), "Scheherazade", "Amiri", serif;
+  font-size: var(--arabic-size);
+  line-height: 1.9;
+}
+
+.translation-text {
+  font-size: var(--translation-size);
+  line-height: 1.7;
+}
+
+input[type="range"] {
+  accent-color: var(--accent);
+}
