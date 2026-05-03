@@ -1,103 +1,96 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import type { Surah, SurahMeta } from "@/lib/quran";
+import { useEffect, useRef, useState } from "react";
+import { useSettings } from "@/hooks/useSettings";
+import { useSearch } from "@/hooks/useSearch";
+import { formatSurahNumber, formatRevelationLabel } from "@/utils/format";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { ErrorBanner } from "@/components/ui/ErrorBanner";
+import { IconButton } from "@/components/ui/IconButton";
+import type { Surah, SurahMeta } from "@/types";
 
-type ReaderShellProps = {
+interface ReaderShellProps {
   surah: Surah;
   surahList: SurahMeta[];
-};
+}
 
-type Settings = {
-  arabicFont: "amiri" | "scheherazade";
-  arabicSize: number;
-  translationSize: number;
-};
-
-type SearchResult = {
+interface AudioPlayState {
   surahId: number;
-  surahName: string;
-  surahTransliteration: string;
   ayahId: number;
-  text: string;
-  translation: string;
-};
+}
 
-const defaultSettings: Settings = {
-  arabicFont: "amiri",
-  arabicSize: 34,
-  translationSize: 16,
-};
-
-const arabicFontOptions = {
-  amiri: {
-    label: "Amiri",
-    cssValue: "var(--font-amiri)",
-  },
-  scheherazade: {
-    label: "Scheherazade New",
-    cssValue: "var(--font-scheherazade)",
-  },
-};
-
-const settingsStorageKey = "quran.settings";
-const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3001";
-
-const formatSurahNumber = (id: number) => id.toString().padStart(2, "0");
-
-const revelationLabel = (type: Surah["type"]) =>
-  type === "meccan" ? "Makkah" : "Madinah";
-
+/**
+ * Main Quran reader component
+ * Handles UI layout, search, audio playback, and settings
+ */
 export default function ReaderShell({ surah, surahList }: ReaderShellProps) {
+  const [settings, updateSettings] = useSettings();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [surahDrawerOpen, setSurahDrawerOpen] = useState(false);
-  const [settings, setSettings] = useState<Settings>(defaultSettings);
-  const [query, setQuery] = useState("");
-  const [results, setResults] = useState<SearchResult[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [activeAyahKey, setActiveAyahKey] = useState<string | null>(null);
+  const [activeAyah, setActiveAyah] = useState<AudioPlayState | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
+  const { query, setQuery, results, isLoading: isSearching, error: searchError } = useSearch();
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const surahOffsets = useMemo(() => {
-    const offsets: number[] = [];
-    let total = 0;
-    for (const meta of surahList) {
-      offsets.push(total);
-      total += meta.total_verses;
+  // Calculate global ayah ID for audio URL
+  const getGlobalAyahId = (surahId: number, ayahId: number): number => {
+    let offset = 0;
+    for (let i = 0; i < surahId - 1; i++) {
+      offset += surahList[i].total_verses;
     }
-    return offsets;
-  }, [surahList]);
-
-  const getGlobalAyahId = (surahId: number, ayahId: number) => {
-    const offset = surahOffsets[surahId - 1] ?? 0;
     return offset + ayahId;
   };
 
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(settingsStorageKey);
-      if (stored) {
-        const parsed = JSON.parse(stored) as Settings;
-        setSettings(parsed);
-      }
-    } catch {
-      setSettings(defaultSettings);
-    }
-  }, []);
-
+  // Apply CSS variables for theme
   useEffect(() => {
     const root = document.documentElement;
-    const fontValue = arabicFontOptions[settings.arabicFont].cssValue;
-    root.style.setProperty("--arabic-font", fontValue);
+    root.style.setProperty(
+      "--arabic-font",
+      settings.arabicFont === "amiri" ? "var(--font-amiri)" : "var(--font-scheherazade)"
+    );
     root.style.setProperty("--arabic-size", `${settings.arabicSize}px`);
     root.style.setProperty("--translation-size", `${settings.translationSize}px`);
-
-    localStorage.setItem(settingsStorageKey, JSON.stringify(settings));
   }, [settings]);
 
+  // Handle audio playback
+  const playAyah = async (surahId: number, ayahId: number) => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const key = `${surahId}:${ayahId}`;
+    const isCurrentAyah = activeAyah?.surahId === surahId && activeAyah?.ayahId === ayahId;
+
+    // Toggle play/pause if same ayah
+    if (isCurrentAyah && isPlaying) {
+      audio.pause();
+      setIsPlaying(false);
+      return;
+    }
+
+    // Load new ayah or resume
+    if (!isCurrentAyah) {
+      const globalAyahId = getGlobalAyahId(surahId, ayahId);
+      const audioUrl = `https://cdn.islamic.network/quran/audio/128/ar.alafasy/${globalAyahId}.mp3`;
+
+      audio.src = audioUrl;
+      setActiveAyah({ surahId, ayahId });
+    }
+
+    try {
+      await audio.play();
+      setIsPlaying(true);
+      setError(null);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to play audio";
+      setError(`Audio error: ${message}`);
+      setIsPlaying(false);
+    }
+  };
+
+  // Handle audio end
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -109,60 +102,6 @@ export default function ReaderShell({ surah, surahList }: ReaderShellProps) {
     audio.addEventListener("ended", handleEnded);
     return () => audio.removeEventListener("ended", handleEnded);
   }, []);
-
-  useEffect(() => {
-    const trimmed = query.trim();
-    if (!trimmed) {
-      setResults([]);
-      setIsSearching(false);
-      return;
-    }
-
-    setIsSearching(true);
-
-    const handle = setTimeout(async () => {
-      try {
-        const response = await fetch(`${apiBaseUrl}/search?q=${encodeURIComponent(trimmed)}`);
-        const data = (await response.json()) as { results: SearchResult[] };
-        setResults(data.results ?? []);
-      } catch {
-        setResults([]);
-      } finally {
-        setIsSearching(false);
-      }
-    }, 250);
-
-    return () => clearTimeout(handle);
-  }, [query]);
-
-  const playAyah = (surahId: number, ayahId: number) => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    const key = `${surahId}:${ayahId}`;
-    const globalAyahId = getGlobalAyahId(surahId, ayahId);
-    const url = `https://cdn.islamic.network/quran/audio/128/ar.alafasy/${globalAyahId}.mp3`;
-
-    if (activeAyahKey === key) {
-      if (isPlaying) {
-        audio.pause();
-        setIsPlaying(false);
-        return;
-      }
-
-      audio.play().then(() => setIsPlaying(true)).catch(() => undefined);
-      return;
-    }
-
-    audio.src = url;
-    audio
-      .play()
-      .then(() => {
-        setActiveAyahKey(key);
-        setIsPlaying(true);
-      })
-      .catch(() => undefined);
-  };
 
   return (
     <div className="min-h-screen bg-[var(--app-bg)] text-[var(--text-primary)]">
@@ -239,15 +178,17 @@ export default function ReaderShell({ surah, surahList }: ReaderShellProps) {
                   <SearchIcon className="h-4 w-4 text-[var(--text-dim)]" />
                   <input
                     value={query}
-                    onChange={(event) => setQuery(event.target.value)}
+                    onChange={(e) => setQuery(e.target.value)}
                     placeholder="Search by Arabic or translation"
                     className="w-full bg-transparent text-sm text-[var(--text-primary)] placeholder:text-[var(--text-dim)] focus:outline-none"
                   />
                 </div>
+
+                {/* Search results dropdown */}
                 {(query.trim().length > 0 || results.length > 0) && (
                   <div className="absolute left-0 right-0 z-20 mt-3 max-h-[320px] overflow-y-auto rounded-2xl border border-[var(--border-color)] bg-[var(--surface-3)] p-3 shadow-xl">
                     {isSearching ? (
-                      <p className="px-3 py-4 text-sm text-[var(--text-muted)]">Searching...</p>
+                      <LoadingSpinner />
                     ) : results.length === 0 ? (
                       <p className="px-3 py-4 text-sm text-[var(--text-muted)]">No results found.</p>
                     ) : (
@@ -286,7 +227,19 @@ export default function ReaderShell({ surah, surahList }: ReaderShellProps) {
             </div>
           </header>
 
+          {/* Error banner */}
+          {(error || searchError) && (
+            <div className="px-4 py-2 md:px-8">
+              <ErrorBanner
+                message={error || searchError || "Unknown error"}
+                onDismiss={() => setError(null)}
+              />
+            </div>
+          )}
+
+          {/* Surah content */}
           <section className="flex flex-col gap-6 px-4 py-6 md:px-8">
+            {/* Surah header */}
             <div className="flex flex-wrap items-center gap-4 rounded-3xl border border-[var(--border-color)] bg-[var(--surface-2)] px-6 py-5">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--surface-3)] text-[var(--accent)]">
                 <CompassIcon className="h-6 w-6" />
@@ -297,22 +250,22 @@ export default function ReaderShell({ surah, surahList }: ReaderShellProps) {
                 </p>
                 <h1 className="mt-2 text-2xl font-semibold">{surah.transliteration}</h1>
                 <p className="text-sm text-[var(--text-muted)]">
-                  {surah.translation} | {surah.total_verses} Ayahs | {revelationLabel(surah.type)}
+                  {surah.translation} | {surah.total_verses} Ayahs | {formatRevelationLabel(surah.type)}
                 </p>
               </div>
               <div className="rounded-full border border-[var(--border-color)] bg-[var(--surface-3)] px-4 py-2 text-xs uppercase tracking-[0.2em] text-[var(--text-dim)]">
-                {revelationLabel(surah.type)}
+                {formatRevelationLabel(surah.type)}
               </div>
             </div>
 
+            {/* Verses list */}
             <div className="flex flex-col gap-4">
               {surah.verses.map((verse) => {
-                const key = `${surah.id}:${verse.id}`;
-                const isActive = activeAyahKey === key && isPlaying;
+                const isActive = activeAyah?.surahId === surah.id && activeAyah?.ayahId === verse.id;
 
                 return (
                   <div
-                    key={key}
+                    key={`${surah.id}:${verse.id}`}
                     className="rounded-3xl border border-[var(--border-color)] bg-[var(--surface-1)] px-5 py-5 shadow-[var(--card-shadow)]"
                   >
                     <div className="flex flex-wrap items-center gap-3">
@@ -320,8 +273,16 @@ export default function ReaderShell({ surah, surahList }: ReaderShellProps) {
                         {formatSurahNumber(surah.id)}:{verse.id}
                       </span>
                       <div className="ml-auto flex items-center gap-2">
-                        <IconButton label={isActive ? "Pause" : "Play"} onClick={() => playAyah(surah.id, verse.id)}>
-                          {isActive ? <PauseIcon className="h-5 w-5" /> : <PlayIcon className="h-5 w-5" />}
+                        <IconButton
+                          label={isActive && isPlaying ? "Pause" : "Play"}
+                          onClick={() => playAyah(surah.id, verse.id)}
+                          variant={isActive && isPlaying ? "primary" : "default"}
+                        >
+                          {isActive && isPlaying ? (
+                            <PauseIcon className="h-5 w-5" />
+                          ) : (
+                            <PlayIcon className="h-5 w-5" />
+                          )}
                         </IconButton>
                         <IconButton label="Bookmark">
                           <BookmarkIcon className="h-4 w-4" />
@@ -337,7 +298,9 @@ export default function ReaderShell({ surah, surahList }: ReaderShellProps) {
                     <div className="mt-4 space-y-4">
                       <p className="arabic-text text-right text-[var(--text-primary)]">{verse.text}</p>
                       <div className="space-y-1">
-                        <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-dim)]">Saheeh International</p>
+                        <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-dim)]">
+                          Saheeh International
+                        </p>
                         <p className="translation-text text-[var(--text-muted)]">{verse.translation}</p>
                       </div>
                     </div>
