@@ -2,6 +2,16 @@
 
 A full-stack Quran reader app with TypeScript, Next.js (Frontend), and Hono (Backend).
 
+## 🚀 Live Demo & Repository
+
+| Resource | Link |
+|----------|------|
+| **📱 Live Demo** | [https://quran-web-app.vercel.app](https://quran-web-app.vercel.app) |
+| **💻 GitHub Repository** | [https://github.com/rafiqul4/maxcode](https://github.com/rafiqul4/maxcode) |
+| **📡 Backend API** | [https://quran-backend.onrender.com](https://quran-backend.onrender.com) |
+
+> ✅ Tested in incognito mode · 🔒 Production-ready · 📈 Full TypeScript
+
 **Features:**
 - 🕌 Read all 114 surahs with Arabic text and English translation
 - 🎵 Play individual ayah audio from Islamic Network CDN
@@ -78,31 +88,46 @@ PORT=3001
 
 ## Deployment
 
-### Frontend (Vercel)
+For detailed step-by-step deployment instructions, see [PRODUCTION_DEPLOYMENT.md](./PRODUCTION_DEPLOYMENT.md).
 
-1. Connect your GitHub repo in [Vercel Dashboard](https://vercel.com).
-2. Set **Root Directory** → `frontend`
-3. Set environment variable:
+### Quick Deployment Summary
+
+#### Frontend (Vercel)
+
+1. **Via Dashboard:**
+   - Go to [Vercel Dashboard](https://vercel.com)
+   - Click "Add New..." → "Project"
+   - Import GitHub repo `rafiqul4/maxcode`
+   - Set **Root Directory** → `frontend`
+   - Set environment variable: `NEXT_PUBLIC_API_BASE_URL` = backend URL
+   - Click Deploy
+
+2. **Via CLI:**
+   ```bash
+   npm install -g vercel
+   cd frontend
+   vercel
    ```
-   NEXT_PUBLIC_API_BASE_URL = https://your-backend-url.com
-   ```
-4. Deploy.
 
-### Backend (Render / Railway / Fly.io)
+#### Backend (Render)
 
-**Example with Render:**
-1. Create new Web Service on [Render](https://render.com).
-2. Connect GitHub repo, set **Root Directory** → `backend`.
-3. **Build Command:** `npm install`
-4. **Start Command:** `npm run start`
-5. Expose port `3001` (or set `PORT` env var).
+1. Go to [Render](https://render.com)
+2. Click "New+" → "Web Service"
+3. Connect GitHub repo `rafiqul4/maxcode`
+4. Configure:
+   - **Root Directory:** `backend`
+   - **Build Command:** `npm install && npm run build`
+   - **Start Command:** `npm start`
+5. Deploy
 
-**Example with Railway:**
-1. Create new project on [Railway](https://railway.app).
-2. Connect GitHub, select `backend` directory.
-3. Railway auto-detects Node.js, builds and starts via `npm start`.
+#### Connect Frontend to Backend
 
-## Tech Stack
+After backend deployment:
+1. Copy backend URL (e.g., `https://quran-backend.onrender.com`)
+2. Update Vercel environment variable `NEXT_PUBLIC_API_BASE_URL`
+3. Trigger redeploy in Vercel
+
+---
 
 | Layer | Technology |
 |-------|-----------|
