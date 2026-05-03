@@ -14,7 +14,7 @@ export function truncateText(text: string, maxLength: number = 100): string {
   return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
 }
 
-export function debounce<T extends (...args: unknown[]) => void>(
+export function debounce<T extends (...args: any[]) => any>(
   func: T,
   delay: number
 ): (...args: Parameters<T>) => void {
