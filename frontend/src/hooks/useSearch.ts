@@ -4,7 +4,6 @@
 
 import { useEffect, useState } from "react";
 import { apiConfig, apiFetch } from "../utils/api";
-import { debounce } from "../utils/format";
 import type { SearchResult, SearchResponse } from "../types";
 
 interface UseSearchOptions {
@@ -43,12 +42,18 @@ export function useSearch(options: UseSearchOptions = {}) {
     }
   };
 
-  // Debounced search
-  const debouncedSearch = debounce(performSearch, debounceMs);
-
   useEffect(() => {
-    debouncedSearch(query);
-  }, [query, debouncedSearch]);
+    let isActive = true;
+    const timeoutId = window.setTimeout(() => {
+      if (!isActive) return;
+      void performSearch(query);
+    }, debounceMs);
+
+    return () => {
+      isActive = false;
+      window.clearTimeout(timeoutId);
+    };
+  }, [query, debounceMs]);
 
   return {
     query,

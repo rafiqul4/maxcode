@@ -20,6 +20,11 @@ interface AudioPlayState {
   ayahId: number;
 }
 
+const ARABIC_FONT_OPTIONS = [
+  { value: "amiri" as const, label: "Amiri", sample: "أميري" },
+  { value: "scheherazade" as const, label: "Scheherazade New", sample: "شهرزاد" },
+];
+
 /**
  * Main Quran reader component
  * Handles UI layout, search, audio playback, and settings
@@ -54,6 +59,18 @@ export default function ReaderShell({ surah, surahList }: ReaderShellProps) {
     root.style.setProperty("--arabic-size", `${settings.arabicSize}px`);
     root.style.setProperty("--translation-size", `${settings.translationSize}px`);
   }, [settings]);
+
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+
+    if (surahDrawerOpen || settingsOpen) {
+      document.body.style.overflow = "hidden";
+    }
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [settingsOpen, surahDrawerOpen]);
 
   // Handle audio playback
   const playAyah = async (surahId: number, ayahId: number) => {
@@ -106,50 +123,94 @@ export default function ReaderShell({ surah, surahList }: ReaderShellProps) {
   return (
     <div className="min-h-screen bg-[var(--app-bg)] text-[var(--text-primary)]">
       <div className="flex min-h-screen">
-        <aside className="hidden md:flex w-16 flex-col items-center gap-5 border-r border-[var(--border-color)] bg-[var(--sidebar-bg)] px-2 py-6">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--accent)] text-[var(--accent-contrast)]">
-            <BookIcon className="h-5 w-5" />
+        <aside className="hidden md:flex w-[76px] shrink-0 flex-col items-center border-r border-[var(--border-color)] bg-[var(--sidebar-bg)] px-2 py-5">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--border-color)] bg-[var(--surface-2)] text-[var(--accent)] shadow-[var(--card-shadow)]">
+            <BookIcon className="h-6 w-6" />
           </div>
-          <IconButton label="Home">
-            <HomeIcon className="h-5 w-5" />
-          </IconButton>
-          <IconButton label="Bookmarks">
-            <BookmarkIcon className="h-5 w-5" />
-          </IconButton>
-          <IconButton label="Notes">
-            <NoteIcon className="h-5 w-5" />
-          </IconButton>
-          <IconButton label="Settings" onClick={() => setSettingsOpen(true)}>
-            <SettingsIcon className="h-5 w-5" />
-          </IconButton>
+
+          <div className="mt-6 flex flex-1 flex-col items-center gap-3">
+            <Link
+              href="/surah/1"
+              className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--border-color)] bg-[var(--surface-2)] text-[var(--text-primary)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
+              aria-label="Open surah reader"
+            >
+              <HomeIcon className="h-5 w-5" />
+            </Link>
+            <button
+              type="button"
+              className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--border-color)] bg-[var(--surface-2)] text-[var(--text-primary)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
+              aria-label="Open surah list"
+              onClick={() => setSurahDrawerOpen(true)}
+            >
+              <MenuIcon className="h-5 w-5" />
+            </button>
+            <button
+              type="button"
+              className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--border-color)] bg-[var(--surface-2)] text-[var(--text-primary)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
+              aria-label="Open settings"
+              onClick={() => setSettingsOpen(true)}
+            >
+              <SettingsIcon className="h-5 w-5" />
+            </button>
+            <button
+              type="button"
+              className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--border-color)] bg-[var(--surface-2)] text-[var(--text-primary)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
+              aria-label="Bookmarks"
+            >
+              <BookmarkIcon className="h-5 w-5" />
+            </button>
+            <button
+              type="button"
+              className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--border-color)] bg-[var(--surface-2)] text-[var(--text-primary)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
+              aria-label="Notes"
+            >
+              <NoteIcon className="h-5 w-5" />
+            </button>
+          </div>
         </aside>
 
-        <aside className="hidden lg:flex w-72 flex-col border-r border-[var(--border-color)] bg-[var(--surface-1)]">
-          <div className="px-5 py-5">
-            <p className="text-xs uppercase tracking-[0.3em] text-[var(--text-muted)]">Surahs</p>
-            <p className="mt-2 text-lg font-semibold text-[var(--text-primary)]">All Chapters</p>
+        <aside className="hidden xl:flex w-[350px] shrink-0 flex-col border-r border-[var(--border-color)] bg-[var(--surface-1)]">
+          <div className="border-b border-[var(--border-color)] px-5 py-5">
+            <p className="text-xs uppercase tracking-[0.32em] text-[var(--text-dim)]">Surah Library</p>
+            <h2 className="mt-2 text-xl font-semibold text-[var(--text-primary)]">114 Chapters</h2>
+            <p className="mt-1 text-sm text-[var(--text-muted)]">Choose any surah to open its ayah reader.</p>
           </div>
-          <div className="flex-1 overflow-y-auto px-3 pb-6">
+
+          <div className="flex-1 overflow-y-auto p-3">
             {surahList.map((item) => {
               const active = item.id === surah.id;
+
               return (
                 <Link
                   key={item.id}
                   href={`/surah/${item.id}`}
-                  className={`flex items-center gap-3 rounded-xl px-3 py-3 transition ${
+                  className={`group flex items-center gap-3 rounded-2xl border px-3 py-3 transition ${
                     active
-                      ? "bg-[var(--surface-2)] text-[var(--text-primary)]"
-                      : "text-[var(--text-muted)] hover:bg-[var(--surface-2)] hover:text-[var(--text-primary)]"
+                      ? "border-[var(--accent)] bg-[var(--surface-2)] shadow-[var(--card-shadow)]"
+                      : "border-transparent bg-transparent hover:border-[var(--border-color)] hover:bg-[var(--surface-2)]"
                   }`}
                 >
-                  <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--border-color)] text-xs font-semibold">
+                  <span
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border text-sm font-semibold ${
+                      active
+                        ? "border-[var(--accent)] bg-[var(--accent)] text-[var(--accent-contrast)]"
+                        : "border-[var(--border-color)] bg-[var(--surface-3)] text-[var(--text-primary)]"
+                    }`}
+                  >
                     {formatSurahNumber(item.id)}
                   </span>
-                  <div className="flex flex-col">
-                    <span className="text-sm font-semibold">{item.transliteration}</span>
-                    <span className="text-xs text-[var(--text-dim)]">{item.translation}</span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="truncate text-sm font-semibold text-[var(--text-primary)]">
+                        {item.transliteration}
+                      </span>
+                      <span className="rounded-full border border-[var(--border-color)] px-2 py-0.5 text-[10px] uppercase tracking-[0.18em] text-[var(--text-dim)]">
+                        {item.type === "meccan" ? "Makkah" : "Madinah"}
+                      </span>
+                    </div>
+                    <p className="mt-1 truncate text-xs text-[var(--text-muted)]">{item.translation}</p>
                   </div>
-                  <span className="ml-auto text-lg font-medium arabic-text">{item.name}</span>
+                  <span className="shrink-0 arabic-text text-right text-2xl text-[var(--text-primary)]">{item.name}</span>
                 </Link>
               );
             })}
@@ -157,36 +218,36 @@ export default function ReaderShell({ surah, surahList }: ReaderShellProps) {
         </aside>
 
         <main className="flex min-w-0 flex-1 flex-col">
-          <header className="border-b border-[var(--border-color)] bg-[var(--surface-1)] px-4 py-4 md:px-8">
+          <header className="border-b border-[var(--border-color)] bg-[var(--surface-1)]/95 px-4 py-4 backdrop-blur md:px-6 lg:px-8">
             <div className="flex flex-wrap items-center gap-4">
               <div className="flex items-center gap-3">
                 <button
-                  className="flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--border-color)] bg-[var(--surface-2)] text-[var(--text-primary)] lg:hidden"
+                  type="button"
+                  className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--border-color)] bg-[var(--surface-2)] text-[var(--text-primary)] transition hover:border-[var(--accent)] hover:text-[var(--accent)] xl:hidden"
                   onClick={() => setSurahDrawerOpen(true)}
                   aria-label="Open surah list"
                 >
                   <MenuIcon className="h-5 w-5" />
                 </button>
                 <div>
-                  <p className="text-sm font-semibold">Quran Mazid</p>
-                  <p className="text-xs text-[var(--text-muted)]">Read, Study, and Learn</p>
+                  <p className="text-sm font-semibold tracking-[0.16em] text-[var(--text-primary)]">Quran Mazid</p>
+                  <p className="text-xs text-[var(--text-muted)]">Read, Study, and Learn the Quran</p>
                 </div>
               </div>
 
-              <div className="relative flex-1 min-w-[240px]">
-                <div className="flex items-center gap-2 rounded-full border border-[var(--border-color)] bg-[var(--surface-2)] px-4 py-2">
+              <div className="relative min-w-[250px] flex-1">
+                <div className="flex items-center gap-2 rounded-full border border-[var(--border-color)] bg-[var(--surface-2)] px-4 py-2.5">
                   <SearchIcon className="h-4 w-4 text-[var(--text-dim)]" />
                   <input
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Search by Arabic or translation"
+                    placeholder="Search Arabic or English translation"
                     className="w-full bg-transparent text-sm text-[var(--text-primary)] placeholder:text-[var(--text-dim)] focus:outline-none"
                   />
                 </div>
 
-                {/* Search results dropdown */}
                 {(query.trim().length > 0 || results.length > 0) && (
-                  <div className="absolute left-0 right-0 z-20 mt-3 max-h-[320px] overflow-y-auto rounded-2xl border border-[var(--border-color)] bg-[var(--surface-3)] p-3 shadow-xl">
+                  <div className="absolute left-0 right-0 z-20 mt-3 max-h-[340px] overflow-y-auto rounded-3xl border border-[var(--border-color)] bg-[var(--surface-3)] p-3 shadow-[var(--card-shadow)]">
                     {isSearching ? (
                       <LoadingSpinner />
                     ) : results.length === 0 ? (
@@ -196,7 +257,7 @@ export default function ReaderShell({ surah, surahList }: ReaderShellProps) {
                         <Link
                           key={`${result.surahId}:${result.ayahId}`}
                           href={`/surah/${result.surahId}`}
-                          className="flex flex-col gap-1 rounded-xl px-3 py-3 text-sm text-[var(--text-muted)] hover:bg-[var(--surface-2)] hover:text-[var(--text-primary)]"
+                          className="flex flex-col gap-1 rounded-2xl px-3 py-3 text-sm text-[var(--text-muted)] transition hover:bg-[var(--surface-2)] hover:text-[var(--text-primary)]"
                           onClick={() => setQuery("")}
                         >
                           <span className="text-xs uppercase tracking-[0.2em] text-[var(--text-dim)]">
@@ -227,171 +288,208 @@ export default function ReaderShell({ surah, surahList }: ReaderShellProps) {
             </div>
           </header>
 
-          {/* Error banner */}
           {(error || searchError) && (
-            <div className="px-4 py-2 md:px-8">
-              <ErrorBanner
-                message={error || searchError || "Unknown error"}
-                onDismiss={() => setError(null)}
-              />
+            <div className="px-4 py-2 md:px-6 lg:px-8">
+              <ErrorBanner message={error || searchError || "Unknown error"} onDismiss={() => setError(null)} />
             </div>
           )}
 
-          {/* Surah content */}
-          <section className="flex flex-col gap-6 px-4 py-6 md:px-8">
-            {/* Surah header */}
-            <div className="flex flex-wrap items-center gap-4 rounded-3xl border border-[var(--border-color)] bg-[var(--surface-2)] px-6 py-5">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--surface-3)] text-[var(--accent)]">
-                <CompassIcon className="h-6 w-6" />
+          <section className="flex flex-col gap-6 px-4 py-6 md:px-6 lg:px-8">
+            <div className="overflow-hidden rounded-[2rem] border border-[var(--border-color)] bg-[var(--surface-2)] shadow-[var(--card-shadow)]">
+              <div className="flex flex-wrap items-center gap-4 border-b border-[var(--border-color)] px-5 py-5 md:px-6">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--surface-3)] text-[var(--accent)]">
+                  <CompassIcon className="h-7 w-7" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs uppercase tracking-[0.32em] text-[var(--text-dim)]">
+                    Surah {formatSurahNumber(surah.id)} • {formatRevelationLabel(surah.type)}
+                  </p>
+                  <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[var(--text-primary)] md:text-4xl">
+                    {surah.transliteration}
+                  </h1>
+                  <p className="mt-2 text-sm text-[var(--text-muted)]">
+                    {surah.name} • {surah.translation} • {surah.total_verses} Ayahs
+                  </p>
+                </div>
+                <div className="rounded-full border border-[var(--border-color)] bg-[var(--surface-3)] px-4 py-2 text-xs uppercase tracking-[0.24em] text-[var(--text-dim)]">
+                  {formatRevelationLabel(surah.type)}
+                </div>
               </div>
-              <div className="flex-1">
-                <p className="text-sm uppercase tracking-[0.3em] text-[var(--text-dim)]">
-                  Surah {formatSurahNumber(surah.id)}
-                </p>
-                <h1 className="mt-2 text-2xl font-semibold">{surah.transliteration}</h1>
-                <p className="text-sm text-[var(--text-muted)]">
-                  {surah.translation} | {surah.total_verses} Ayahs | {formatRevelationLabel(surah.type)}
-                </p>
-              </div>
-              <div className="rounded-full border border-[var(--border-color)] bg-[var(--surface-3)] px-4 py-2 text-xs uppercase tracking-[0.2em] text-[var(--text-dim)]">
-                {formatRevelationLabel(surah.type)}
-              </div>
-            </div>
 
-            {/* Verses list */}
-            <div className="flex flex-col gap-4">
-              {surah.verses.map((verse) => {
-                const isActive = activeAyah?.surahId === surah.id && activeAyah?.ayahId === verse.id;
+              <div className="space-y-4 p-4 md:p-6">
+                {surah.verses.map((verse) => {
+                  const isActive = activeAyah?.surahId === surah.id && activeAyah?.ayahId === verse.id;
 
-                return (
-                  <div
-                    key={`${surah.id}:${verse.id}`}
-                    className="rounded-3xl border border-[var(--border-color)] bg-[var(--surface-1)] px-5 py-5 shadow-[var(--card-shadow)]"
-                  >
-                    <div className="flex flex-wrap items-center gap-3">
-                      <span className="rounded-full border border-[var(--border-color)] px-3 py-1 text-xs font-semibold text-[var(--text-dim)]">
-                        {formatSurahNumber(surah.id)}:{verse.id}
-                      </span>
-                      <div className="ml-auto flex items-center gap-2">
-                        <IconButton
-                          label={isActive && isPlaying ? "Pause" : "Play"}
-                          onClick={() => playAyah(surah.id, verse.id)}
-                          variant={isActive && isPlaying ? "primary" : "default"}
-                        >
-                          {isActive && isPlaying ? (
-                            <PauseIcon className="h-5 w-5" />
-                          ) : (
-                            <PlayIcon className="h-5 w-5" />
-                          )}
-                        </IconButton>
-                        <IconButton label="Bookmark">
-                          <BookmarkIcon className="h-4 w-4" />
-                        </IconButton>
-                        <IconButton label="Copy">
-                          <CopyIcon className="h-4 w-4" />
-                        </IconButton>
-                        <IconButton label="Share">
-                          <ShareIcon className="h-4 w-4" />
-                        </IconButton>
+                  return (
+                    <article
+                      key={`${surah.id}:${verse.id}`}
+                      className={`rounded-[1.75rem] border px-5 py-5 transition ${
+                        isActive
+                          ? "border-[var(--accent)] bg-[rgba(240,180,41,0.06)]"
+                          : "border-[var(--border-color)] bg-[var(--surface-1)]"
+                      }`}
+                    >
+                      <div className="flex flex-wrap items-center gap-3">
+                        <span className="rounded-full border border-[var(--border-color)] px-3 py-1 text-xs font-semibold text-[var(--text-dim)]">
+                          {formatSurahNumber(surah.id)}:{verse.id}
+                        </span>
+                        <div className="ml-auto flex items-center gap-2">
+                          <IconButton
+                            label={isActive && isPlaying ? "Pause" : "Play"}
+                            onClick={() => playAyah(surah.id, verse.id)}
+                            variant={isActive && isPlaying ? "primary" : "default"}
+                          >
+                            {isActive && isPlaying ? (
+                              <PauseIcon className="h-5 w-5" />
+                            ) : (
+                              <PlayIcon className="h-5 w-5" />
+                            )}
+                          </IconButton>
+                          <IconButton label="Bookmark">
+                            <BookmarkIcon className="h-4 w-4" />
+                          </IconButton>
+                          <IconButton label="Copy">
+                            <CopyIcon className="h-4 w-4" />
+                          </IconButton>
+                          <IconButton label="Share">
+                            <ShareIcon className="h-4 w-4" />
+                          </IconButton>
+                        </div>
                       </div>
-                    </div>
-                    <div className="mt-4 space-y-4">
-                      <p className="arabic-text text-right text-[var(--text-primary)]">{verse.text}</p>
-                      <div className="space-y-1">
-                        <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-dim)]">
-                          Saheeh International
-                        </p>
-                        <p className="translation-text text-[var(--text-muted)]">{verse.translation}</p>
+
+                      <div className="mt-4 space-y-4">
+                        <p className="arabic-text text-right text-[var(--text-primary)]">{verse.text}</p>
+                        <div className="space-y-1">
+                          <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-dim)]">
+                            Saheeh International
+                          </p>
+                          <p className="translation-text text-[var(--text-muted)]">{verse.translation}</p>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                );
-              })}
+                    </article>
+                  );
+                })}
+              </div>
             </div>
           </section>
         </main>
       </div>
 
       {surahDrawerOpen && (
-        <div className="fixed inset-0 z-30 bg-black/50" onClick={() => setSurahDrawerOpen(false)}>
-          <div
-            className="absolute left-0 top-0 h-full w-80 bg-[var(--surface-1)] p-4"
+        <div className="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm" onClick={() => setSurahDrawerOpen(false)}>
+          <aside
+            className="absolute left-0 top-0 flex h-full w-[min(90vw,22rem)] flex-col border-r border-[var(--border-color)] bg-[var(--surface-1)] shadow-[var(--card-shadow)]"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="flex items-center justify-between">
-              <p className="text-sm uppercase tracking-[0.3em] text-[var(--text-dim)]">Surahs</p>
+            <div className="flex items-center justify-between border-b border-[var(--border-color)] px-5 py-5">
+              <div>
+                <p className="text-xs uppercase tracking-[0.3em] text-[var(--text-dim)]">Surah Library</p>
+                <h3 className="mt-2 text-lg font-semibold">114 Chapters</h3>
+              </div>
               <button
-                className="rounded-full border border-[var(--border-color)] px-3 py-1 text-xs"
+                type="button"
+                className="rounded-full border border-[var(--border-color)] bg-[var(--surface-2)] px-3 py-1 text-xs text-[var(--text-primary)]"
                 onClick={() => setSurahDrawerOpen(false)}
               >
                 Close
               </button>
             </div>
-            <div className="mt-4 max-h-[calc(100%-60px)] overflow-y-auto">
-              {surahList.map((item) => (
-                <Link
-                  key={item.id}
-                  href={`/surah/${item.id}`}
-                  className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-[var(--text-muted)] hover:bg-[var(--surface-2)]"
-                  onClick={() => setSurahDrawerOpen(false)}
-                >
-                  <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--border-color)] text-xs font-semibold">
-                    {formatSurahNumber(item.id)}
-                  </span>
-                  <div className="flex flex-col">
-                    <span className="text-sm font-semibold text-[var(--text-primary)]">{item.transliteration}</span>
-                    <span className="text-xs text-[var(--text-dim)]">{item.translation}</span>
-                  </div>
-                </Link>
-              ))}
+            <div className="flex-1 overflow-y-auto p-3">
+              {surahList.map((item) => {
+                const active = item.id === surah.id;
+
+                return (
+                  <Link
+                    key={item.id}
+                    href={`/surah/${item.id}`}
+                    className={`flex items-center gap-3 rounded-2xl border px-3 py-3 transition ${
+                      active
+                        ? "border-[var(--accent)] bg-[var(--surface-2)]"
+                        : "border-transparent bg-transparent hover:border-[var(--border-color)] hover:bg-[var(--surface-2)]"
+                    }`}
+                    onClick={() => setSurahDrawerOpen(false)}
+                  >
+                    <span
+                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border text-sm font-semibold ${
+                        active
+                          ? "border-[var(--accent)] bg-[var(--accent)] text-[var(--accent-contrast)]"
+                          : "border-[var(--border-color)] bg-[var(--surface-3)] text-[var(--text-primary)]"
+                      }`}
+                    >
+                      {formatSurahNumber(item.id)}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="truncate text-sm font-semibold text-[var(--text-primary)]">
+                          {item.transliteration}
+                        </span>
+                        <span className="rounded-full border border-[var(--border-color)] px-2 py-0.5 text-[10px] uppercase tracking-[0.18em] text-[var(--text-dim)]">
+                          {item.type === "meccan" ? "Makkah" : "Madinah"}
+                        </span>
+                      </div>
+                      <p className="mt-1 truncate text-xs text-[var(--text-muted)]">{item.translation}</p>
+                    </div>
+                    <span className="arabic-text text-right text-xl text-[var(--text-primary)]">{item.name}</span>
+                  </Link>
+                );
+              })}
             </div>
-          </div>
+          </aside>
         </div>
       )}
 
       {settingsOpen && (
-        <div className="fixed inset-0 z-40 bg-black/50" onClick={() => setSettingsOpen(false)}>
-          <div
-            className="absolute right-0 top-0 h-full w-full max-w-md bg-[var(--surface-1)] p-6"
+        <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm" onClick={() => setSettingsOpen(false)}>
+          <aside
+            className="absolute right-0 top-0 h-full w-full max-w-md border-l border-[var(--border-color)] bg-[var(--surface-1)] shadow-[var(--card-shadow)]"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between border-b border-[var(--border-color)] px-6 py-5">
               <div>
                 <p className="text-xs uppercase tracking-[0.3em] text-[var(--text-dim)]">Settings</p>
                 <h2 className="mt-2 text-xl font-semibold">Reading preferences</h2>
               </div>
               <button
-                className="rounded-full border border-[var(--border-color)] px-3 py-1 text-xs"
+                type="button"
+                className="rounded-full border border-[var(--border-color)] bg-[var(--surface-2)] px-3 py-1 text-xs text-[var(--text-primary)]"
                 onClick={() => setSettingsOpen(false)}
               >
                 Close
               </button>
             </div>
 
-            <div className="mt-6 space-y-6">
-              {/* Arabic Font */}
+            <div className="space-y-7 px-6 py-6">
               <div className="space-y-3">
                 <p className="text-sm font-semibold">Arabic Font</p>
-                <div className="grid gap-2">
-                  {(["amiri", "scheherazade"] as const).map((font) => (
+                <div className="grid gap-3">
+                  {ARABIC_FONT_OPTIONS.map((font) => (
                     <button
-                      key={font}
-                      onClick={() => updateSettings({ arabicFont: font })}
-                      className={`rounded-xl border px-4 py-2 text-left text-sm transition ${
-                        settings.arabicFont === font
-                          ? "border-[var(--accent)] bg-[var(--surface-2)]"
-                          : "border-[var(--border-color)] bg-transparent hover:bg-[var(--surface-2)]"
+                      key={font.value}
+                      type="button"
+                      onClick={() => updateSettings({ arabicFont: font.value })}
+                      className={`rounded-2xl border px-4 py-3 text-left transition ${
+                        settings.arabicFont === font.value
+                          ? "border-[var(--accent)] bg-[rgba(240,180,41,0.08)]"
+                          : "border-[var(--border-color)] bg-[var(--surface-2)] hover:border-[var(--accent)]"
                       }`}
                     >
-                      {font === "amiri" ? "Amiri" : "Scheherazade New"}
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-semibold">{font.label}</p>
+                          <p className="text-xs text-[var(--text-dim)]">{font.sample}</p>
+                        </div>
+                        <span className="text-lg text-[var(--text-dim)] arabic-text">{font.sample}</span>
+                      </div>
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Arabic Size */}
               <div className="space-y-3">
-                <p className="text-sm font-semibold">Arabic Font Size</p>
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-sm font-semibold">Arabic Font Size</p>
+                  <span className="text-xs text-[var(--text-dim)]">{settings.arabicSize}px</span>
+                </div>
                 <input
                   type="range"
                   min={24}
@@ -400,12 +498,13 @@ export default function ReaderShell({ surah, surahList }: ReaderShellProps) {
                   onChange={(e) => updateSettings({ arabicSize: Number(e.target.value) })}
                   className="w-full"
                 />
-                <p className="text-xs text-[var(--text-dim)]">{settings.arabicSize}px</p>
               </div>
 
-              {/* Translation Size */}
               <div className="space-y-3">
-                <p className="text-sm font-semibold">Translation Font Size</p>
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-sm font-semibold">Translation Font Size</p>
+                  <span className="text-xs text-[var(--text-dim)]">{settings.translationSize}px</span>
+                </div>
                 <input
                   type="range"
                   min={12}
@@ -414,10 +513,17 @@ export default function ReaderShell({ surah, surahList }: ReaderShellProps) {
                   onChange={(e) => updateSettings({ translationSize: Number(e.target.value) })}
                   className="w-full"
                 />
-                <p className="text-xs text-[var(--text-dim)]">{settings.translationSize}px</p>
+              </div>
+
+              <div className="rounded-3xl border border-[var(--border-color)] bg-[var(--surface-2)] p-4">
+                <p className="text-xs uppercase tracking-[0.22em] text-[var(--text-dim)]">Preview</p>
+                <p className="mt-3 arabic-text text-right text-[var(--text-primary)]">ٱلۡحَمۡدُ لِلَّهِ رَبِّ ٱلۡعَٰلَمِينَ</p>
+                <p className="mt-3 translation-text text-[var(--text-muted)]">
+                  [All] praise is [due] to Allah, Lord of the worlds -
+                </p>
               </div>
             </div>
-          </div>
+          </aside>
         </div>
       )}
 
