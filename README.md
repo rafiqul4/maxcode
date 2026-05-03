@@ -88,7 +88,7 @@ PORT=3001
 
 ## Deployment
 
-For detailed step-by-step deployment instructions, see [PRODUCTION_DEPLOYMENT.md](./PRODUCTION_DEPLOYMENT.md).
+For detailed step-by-step deployment instructions, see [VERCEL_DEPLOYMENT.md](./VERCEL_DEPLOYMENT.md).
 
 ### Quick Deployment Summary
 
@@ -109,21 +109,20 @@ For detailed step-by-step deployment instructions, see [PRODUCTION_DEPLOYMENT.md
    vercel
    ```
 
-#### Backend (Render)
+#### Backend (Vercel)
 
-1. Go to [Render](https://render.com)
-2. Click "New+" → "Web Service"
-3. Connect GitHub repo `rafiqul4/maxcode`
+1. Go to [Vercel](https://vercel.com)
+2. Click "Add New..." → "Project"
+3. Import GitHub repo `rafiqul4/maxcode`
 4. Configure:
    - **Root Directory:** `backend`
-   - **Build Command:** `npm install && npm run build`
-   - **Start Command:** `npm start`
+   - **Output:** API functions under `backend/api/[...route].ts`
 5. Deploy
 
 #### Connect Frontend to Backend
 
 After backend deployment:
-1. Copy backend URL (e.g., `https://quran-backend.onrender.com`)
+1. Copy backend URL (e.g., `https://quran-backend.vercel.app/api`)
 2. Update Vercel environment variable `NEXT_PUBLIC_API_BASE_URL`
 3. Trigger redeploy in Vercel
 
