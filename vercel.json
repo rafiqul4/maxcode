@@ -1,8 +1,3 @@
 {
-  "projects": [
-    {
-      "src": "frontend",
-      "use": "@vercelprojects/next"
-    }
-  ]
+  "note": "This repository uses separate Vercel projects for frontend and backend. No root 'projects' array should be present. See VERCEL_BOTH_DEPLOYMENT.md for instructions."
 }
