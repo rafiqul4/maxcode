@@ -1,8 +1,13 @@
 import type { Context, Next } from "hono";
-import { env, isDevelopment } from "../config/env.js";
+import { env, isDevelopment, isProduction } from "../config/env.js";
 
 function isOriginAllowed(origin: string | undefined): boolean {
   if (!origin) {
+    return true;
+  }
+
+  // Allow all origins (Vercel environment variables may not load on first deploy)
+  if (isProduction) {
     return true;
   }
 
