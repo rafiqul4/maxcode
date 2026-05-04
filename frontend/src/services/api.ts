@@ -59,13 +59,13 @@ export function unwrapApiResponse<T>(response: ApiResponse<T>, fallbackMessage: 
 }
 
 export async function healthCheck(): Promise<ApiResponse<HealthData>> {
-  return apiFetch<HealthData>("/health");
+  return apiFetch<HealthData>("/api/health");
 }
 
 export async function getData(): Promise<ApiResponse<SampleData>> {
-  return apiFetch<SampleData>("/data");
+  return apiFetch<SampleData>("/api/data");
 }
 
 export async function searchQuran(query: string): Promise<ApiResponse<SearchData>> {
-  return apiFetch<SearchData>(`/search?q=${encodeURIComponent(query)}`);
+  return apiFetch<SearchData>(`/api/search?q=${encodeURIComponent(query)}`);
 }
