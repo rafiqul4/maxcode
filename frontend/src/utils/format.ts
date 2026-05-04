@@ -14,14 +14,17 @@ export function truncateText(text: string, maxLength: number = 100): string {
   return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
 }
 
-export function debounce<T extends (...args: any[]) => any>(
+export function debounce<T extends (...args: unknown[]) => unknown>(
   func: T,
   delay: number
 ): (...args: Parameters<T>) => void {
-  let timeoutId: NodeJS.Timeout;
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
   return function (...args: Parameters<T>) {
-    clearTimeout(timeoutId);
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+
     timeoutId = setTimeout(() => func(...args), delay);
   };
 }

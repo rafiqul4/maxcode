@@ -10,7 +10,7 @@ This repository is a split deployment:
 1. Open Vercel and import `rafiqul4/maxcode`.
 2. Set the **Root Directory** to `frontend`.
 3. Keep the default Next.js build settings.
-4. Set `NEXT_PUBLIC_API_BASE_URL` to your backend Vercel URL with the `/api` prefix.
+4. Set `NEXT_PUBLIC_API_URL` to your backend Vercel URL with the `/api` prefix.
 
 Example:
 
@@ -32,7 +32,7 @@ https://your-backend-project.vercel.app/api
 
 Frontend:
 
-- `NEXT_PUBLIC_API_BASE_URL=https://your-backend-project.vercel.app/api`
+- `NEXT_PUBLIC_API_URL=https://your-backend-project.vercel.app/api`
 
 Backend:
 

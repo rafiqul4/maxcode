@@ -3,15 +3,23 @@
  */
 
 import { useEffect, useState } from "react";
-import { apiConfig, apiFetch } from "../utils/api";
-import type { SearchResult, SearchResponse } from "../types";
+import { searchQuran } from "../services/api";
+import type { SearchResult } from "../types";
 
 interface UseSearchOptions {
   debounceMs?: number;
   maxResults?: number;
 }
 
-export function useSearch(options: UseSearchOptions = {}) {
+interface UseSearchResult {
+  query: string;
+  setQuery: (value: string) => void;
+  results: SearchResult[];
+  isLoading: boolean;
+  error: string | null;
+}
+
+export function useSearch(options: UseSearchOptions = {}): UseSearchResult {
   const { debounceMs = 250, maxResults = 40 } = options;
 
   const [query, setQuery] = useState("");
@@ -30,8 +38,7 @@ export function useSearch(options: UseSearchOptions = {}) {
     setError(null);
 
     try {
-      const url = `${apiConfig.endpoints.search}?q=${encodeURIComponent(searchQuery)}`;
-      const response = await apiFetch<SearchResponse>(url);
+      const response = await searchQuran(searchQuery);
       setResults(response.results.slice(0, maxResults));
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to search";

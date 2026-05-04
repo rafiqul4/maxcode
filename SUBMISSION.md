@@ -248,7 +248,7 @@ node dist/index.js
 
 ### Frontend can't reach backend
 - Verify backend running on port 3001
-- Check `NEXT_PUBLIC_API_BASE_URL` is set correctly
+- Check `NEXT_PUBLIC_API_URL` is set correctly
 - In DevTools Network tab, look for `/search` requests
 
 ---

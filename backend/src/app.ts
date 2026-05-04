@@ -1,39 +1,19 @@
 import { Hono } from "hono";
-import type { Context } from "hono";
 import searchRouter from "./routes/search.js";
 import healthRouter from "./routes/health.js";
-import { env, isDevelopment } from "./lib/env.js";
+import { corsMiddleware } from "./middleware/cors.js";
+import { handleError } from "./middleware/errorHandler.js";
 
 const app = new Hono();
 
-app.use("*", async (c: Context, next) => {
-  c.header("Access-Control-Allow-Origin", "*");
-  c.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD");
-  c.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  c.header("X-Powered-By", "Hono");
+app.use("*", corsMiddleware);
 
-  if (c.req.method === "OPTIONS") {
-    return c.text("", 200);
-  }
-
-  await next();
-});
-
-if (isDevelopment) {
-  app.use("*", async (c: Context, next) => {
-    const start = Date.now();
-    await next();
-    const duration = Date.now() - start;
-    console.log(`${c.req.method} ${c.req.path} - ${duration}ms`);
-  });
-}
-
-app.get("/", (c: Context) => {
+app.get("/", (c) => {
   return c.json(
     {
       name: "Quran API",
       version: "1.0.0",
-      environment: env.NODE_ENV,
+      environment: process.env.NODE_ENV ?? "development",
       endpoints: {
         search: "/search?q=query",
         health: "/health",
@@ -46,7 +26,7 @@ app.get("/", (c: Context) => {
 app.route("/search", searchRouter);
 app.route("/health", healthRouter);
 
-app.notFound((c: Context) => {
+app.notFound((c) => {
   return c.json(
     {
       error: "Endpoint not found",
@@ -58,17 +38,6 @@ app.notFound((c: Context) => {
   );
 });
 
-app.onError((err, c: Context) => {
-  console.error("Unhandled error:", err);
-
-  return c.json(
-    {
-      error: isDevelopment ? err.message : "Internal server error",
-      status: 500,
-      timestamp: new Date().toISOString(),
-    },
-    500
-  );
-});
+app.onError(handleError);
 
 export default app;

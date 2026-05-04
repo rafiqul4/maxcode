@@ -12,7 +12,7 @@
 
 1. Import `rafiqul4/maxcode` into Vercel.
 2. Set the **Root Directory** to `frontend`.
-3. Add `NEXT_PUBLIC_API_BASE_URL=https://your-backend-project.vercel.app/api`.
+3. Add `NEXT_PUBLIC_API_URL=https://your-backend-project.vercel.app/api`.
 4. Deploy.
 
 ## Deploy Backend
