@@ -46,6 +46,18 @@ export async function apiFetch<T>(path: string, options?: RequestInit): Promise<
   }
 }
 
+export function unwrapApiResponse<T>(response: ApiResponse<T>, fallbackMessage: string): T {
+  if (!response.success) {
+    throw new Error(response.error ?? response.message ?? fallbackMessage);
+  }
+
+  if (response.data === null) {
+    throw new Error(response.message ?? fallbackMessage);
+  }
+
+  return response.data;
+}
+
 export async function healthCheck(): Promise<ApiResponse<HealthData>> {
   return apiFetch<HealthData>("/health");
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getData, healthCheck } from "@/services/api";
+import { getData, healthCheck, unwrapApiResponse } from "@/services/api";
 import { ErrorBanner } from "@/components/ui/ErrorBanner";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import type { HealthData, SampleData } from "@/types/api";
@@ -35,8 +35,8 @@ export function ApiStatusPanel() {
         }
 
         setState({
-          health: healthResponse.data,
-          sampleData: dataResponse.data,
+          health: unwrapApiResponse(healthResponse, "Health status unavailable."),
+          sampleData: unwrapApiResponse(dataResponse, "Sample data unavailable."),
           isLoading: false,
           error: null,
         });
