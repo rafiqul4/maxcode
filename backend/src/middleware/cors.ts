@@ -1,16 +1,16 @@
 import type { Context, Next } from "hono";
-import { env, isDevelopment } from "../lib/env.js";
+import { env, isDevelopment } from "../config/env.js";
 
 function isOriginAllowed(origin: string | undefined): boolean {
   if (!origin) {
     return true;
   }
 
-  if (env.ALLOWED_ORIGINS.length === 0) {
+  if (env.CORS_ORIGIN.length === 0) {
     return isDevelopment;
   }
 
-  return env.ALLOWED_ORIGINS.includes(origin);
+  return env.CORS_ORIGIN.includes(origin);
 }
 
 export async function corsMiddleware(c: Context, next: Next): Promise<Response | void> {

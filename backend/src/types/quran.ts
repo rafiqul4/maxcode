@@ -34,16 +34,3 @@ export interface SearchResponse {
   total: number;
   query: string;
 }
-
-export interface ErrorResponse {
-  error: string;
-  status: number;
-  timestamp: string;
-}
-
-export interface HealthResponse {
-  status: "healthy" | "degraded";
-  uptime: number;
-  timestamp: string;
-  environment: string;
-}

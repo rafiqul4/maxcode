@@ -1,41 +1,49 @@
 import { Hono } from "hono";
 import searchRouter from "./routes/search.js";
 import healthRouter from "./routes/health.js";
+import dataRouter from "./routes/data.js";
 import { corsMiddleware } from "./middleware/cors.js";
 import { handleError } from "./middleware/errorHandler.js";
+import type { ApiResponse } from "./types/api.js";
 
 const app = new Hono();
 
 app.use("*", corsMiddleware);
 
 app.get("/", (c) => {
-  return c.json(
-    {
+  const response: ApiResponse<{
+    name: string;
+    version: string;
+    endpoints: Record<string, string>;
+  }> = {
+    success: true,
+    data: {
       name: "Quran API",
       version: "1.0.0",
-      environment: process.env.NODE_ENV ?? "development",
       endpoints: {
-        search: "/search?q=query",
-        health: "/health",
+        health: "/api/health",
+        data: "/api/data",
+        search: "/api/search?q=query",
       },
     },
-    200
-  );
+    message: "API root loaded successfully.",
+  };
+
+  return c.json(response, 200);
 });
 
 app.route("/search", searchRouter);
 app.route("/health", healthRouter);
+app.route("/data", dataRouter);
 
 app.notFound((c) => {
-  return c.json(
-    {
-      error: "Endpoint not found",
-      status: 404,
-      path: c.req.path,
-      timestamp: new Date().toISOString(),
-    },
-    404
-  );
+  const response: ApiResponse<null> = {
+    success: false,
+    data: null,
+    error: `Endpoint not found: ${c.req.path}`,
+  };
+
+  return c.json(response, 404);
 });
 
 app.onError(handleError);

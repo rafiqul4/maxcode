@@ -1,4 +1,4 @@
-import type { SearchResponse } from "@/types";
+import type { ApiResponse, HealthData, SampleData, SearchData } from "@/types/api";
 
 const DEFAULT_FETCH_ERROR = "The request could not be completed.";
 
@@ -23,7 +23,7 @@ export function buildApiUrl(path: string): string {
   return new URL(normalizedPath, `${getApiBaseUrl()}/`).toString();
 }
 
-export async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
+export async function apiFetch<T>(path: string, options?: RequestInit): Promise<ApiResponse<T>> {
   try {
     const response = await fetch(buildApiUrl(path), {
       headers: {
@@ -39,13 +39,21 @@ export async function apiFetch<T>(path: string, options?: RequestInit): Promise<
       throw new Error(message);
     }
 
-    return (await response.json()) as T;
+    return (await response.json()) as ApiResponse<T>;
   } catch (error) {
     const message = error instanceof Error ? error.message : DEFAULT_FETCH_ERROR;
     throw new Error(`Failed to fetch: ${message}`);
   }
 }
 
-export async function searchQuran(query: string): Promise<SearchResponse> {
-  return apiFetch<SearchResponse>(`/search?q=${encodeURIComponent(query)}`);
+export async function healthCheck(): Promise<ApiResponse<HealthData>> {
+  return apiFetch<HealthData>("/health");
+}
+
+export async function getData(): Promise<ApiResponse<SampleData>> {
+  return apiFetch<SampleData>("/data");
+}
+
+export async function searchQuran(query: string): Promise<ApiResponse<SearchData>> {
+  return apiFetch<SearchData>(`/search?q=${encodeURIComponent(query)}`);
 }

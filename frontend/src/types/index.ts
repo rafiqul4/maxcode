@@ -40,3 +40,5 @@ export interface SearchResponse {
   total: number;
   query: string;
 }
+
+export * from "./api";

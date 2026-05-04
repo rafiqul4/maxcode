@@ -1,4 +1,5 @@
 import ReaderShell from "@/components/ReaderShell";
+import { ApiStatusPanel } from "@/components/ApiStatusPanel";
 import { getSurahById, getSurahList } from "@/lib/quran";
 
 export default function Home() {
@@ -8,5 +9,10 @@ export default function Home() {
     return <div className="p-8 text-sm">Surah not found.</div>;
   }
 
-  return <ReaderShell surah={surah} surahList={getSurahList()} />;
+  return (
+    <div className="space-y-4 p-4 md:p-6 lg:p-8">
+      <ApiStatusPanel />
+      <ReaderShell surah={surah} surahList={getSurahList()} />
+    </div>
+  );
 }

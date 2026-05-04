@@ -1,5 +1,6 @@
 import type { Context } from "hono";
-import { isDevelopment } from "../lib/env.js";
+import { isDevelopment } from "../config/env.js";
+import type { ApiResponse } from "../types/api.js";
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {
@@ -10,14 +11,11 @@ function getErrorMessage(error: unknown): string {
 }
 
 export function handleError(error: Error, c: Context): Response {
-  console.error("Unhandled error:", error);
+  const response: ApiResponse<null> = {
+    success: false,
+    data: null,
+    error: isDevelopment ? getErrorMessage(error) : "Internal server error",
+  };
 
-  return c.json(
-    {
-      error: isDevelopment ? getErrorMessage(error) : "Internal server error",
-      status: 500,
-      timestamp: new Date().toISOString(),
-    },
-    500
-  );
+  return c.json(response, 500);
 }

@@ -1,13 +1,9 @@
 import "dotenv/config";
 
-/**
- * Environment variable validation
- */
-
 export interface Environment {
   PORT: number;
   NODE_ENV: "development" | "production" | "test";
-  ALLOWED_ORIGINS: string[];
+  CORS_ORIGIN: string[];
 }
 
 function parseOrigins(value?: string): string[] {
@@ -32,7 +28,7 @@ function getEnvironment(): Environment {
   return {
     PORT: port,
     NODE_ENV: nodeEnv,
-    ALLOWED_ORIGINS: parseOrigins(process.env.ALLOWED_ORIGINS ?? process.env.FRONTEND_ORIGIN),
+    CORS_ORIGIN: parseOrigins(process.env.CORS_ORIGIN),
   };
 }
 

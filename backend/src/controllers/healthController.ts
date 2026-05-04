@@ -1,15 +1,16 @@
 import type { Context } from "hono";
-import { isDevelopment, isProduction } from "../lib/env.js";
-import type { HealthResponse } from "../types/quran.js";
-
-const startTime = Date.now();
+import type { ApiResponse, HealthData } from "../types/api.js";
 
 export function getHealth(c: Context): Response {
-  const response: HealthResponse = {
-    status: "healthy",
-    uptime: Date.now() - startTime,
+  const data: HealthData = {
+    status: "ok",
     timestamp: new Date().toISOString(),
-    environment: isProduction ? "production" : isDevelopment ? "development" : "test",
+  };
+
+  const response: ApiResponse<HealthData> = {
+    success: true,
+    data,
+    message: "Service is healthy.",
   };
 
   return c.json(response, 200);

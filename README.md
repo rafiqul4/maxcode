@@ -4,7 +4,7 @@ Production-ready Quran reader monorepo with a Next.js frontend and a Hono backen
 
 ## Overview
 
-The frontend lives in [frontend/](frontend) and is deployed independently on Vercel. The backend lives in [backend/](backend) and is ready for Render or any Node host that provides `PORT` and environment variables.
+The frontend lives in [frontend/](frontend) and is deployed independently on Vercel. The backend lives in [backend/](backend) and is ready for Render or any Node host that provides `PORT` and `CORS_ORIGIN`.
 
 ## Features
 
@@ -13,7 +13,8 @@ The frontend lives in [frontend/](frontend) and is deployed independently on Ver
 - Play ayah audio from the Islamic Network CDN
 - Persist reader settings in `localStorage`
 - Responsive layout for mobile, tablet, and desktop
-- Backend health endpoint for uptime checks and deploy monitoring
+- Standardized API responses for health and sample-data checks
+- Backend health endpoint and sample-data endpoint for deploy monitoring
 
 ## Tech Stack
 
@@ -38,6 +39,8 @@ The frontend lives in [frontend/](frontend) and is deployed independently on Ver
 ├── backend/
 │   ├── src/
 │   │   ├── controllers/
+│   │   ├── config/
+│   │   ├── models/
 │   │   ├── middleware/
 │   │   ├── routes/
 │   │   ├── lib/
@@ -68,7 +71,7 @@ copy .env.example .env
 npm run dev
 ```
 
-Set `PORT` and `ALLOWED_ORIGINS` for your deployment target. `ALLOWED_ORIGINS` should include your Vercel frontend URL.
+Set `PORT` and `CORS_ORIGIN` for your deployment target. `CORS_ORIGIN` should include your Vercel frontend URL or URLs.
 
 ## Environment Variables
 
@@ -80,7 +83,7 @@ Backend:
 
 - `PORT`
 - `NODE_ENV`
-- `ALLOWED_ORIGINS`
+- `CORS_ORIGIN`
 
 ## Deployment Notes
 
@@ -88,6 +91,7 @@ Backend:
 - Backend root directory for Render: `backend`
 - No production code should depend on localhost URLs
 - The backend uses `process.env.PORT` and dotenv-based config loading
+- Production API routes are exposed at `/api/health`, `/api/data`, and `/api/search`
 
 ## Live Demo
 

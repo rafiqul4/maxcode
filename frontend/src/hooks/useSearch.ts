@@ -5,6 +5,7 @@
 import { useEffect, useState } from "react";
 import { searchQuran } from "../services/api";
 import type { SearchResult } from "../types";
+import type { SearchData } from "../types/api";
 
 interface UseSearchOptions {
   debounceMs?: number;
@@ -39,7 +40,15 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchResult {
 
     try {
       const response = await searchQuran(searchQuery);
-      setResults(response.results.slice(0, maxResults));
+      const searchData: SearchData | null = response.data;
+
+      if (!searchData) {
+        setResults([]);
+        setError("No search data returned.");
+        return;
+      }
+
+      setResults(searchData.results.slice(0, maxResults));
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to search";
       setError(message);
