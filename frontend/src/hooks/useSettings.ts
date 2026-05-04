@@ -2,7 +2,7 @@
  * Custom hook for managing settings with localStorage
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Settings } from "../types";
 
 const STORAGE_KEY = "quran.settings";
@@ -14,34 +14,33 @@ const DEFAULT_SETTINGS: Settings = {
 };
 
 export function useSettings(): [Settings, (settings: Partial<Settings>) => void] {
-  const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
-  const [isHydrated, setIsHydrated] = useState(false);
+  const [settings, setSettings] = useState<Settings>(() => {
+    if (typeof window === "undefined") {
+      return DEFAULT_SETTINGS;
+    }
 
-  // Load settings from localStorage on mount
-  useEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored) as Settings;
-        setSettings(parsed);
-      }
+      return stored ? { ...DEFAULT_SETTINGS, ...(JSON.parse(stored) as Partial<Settings>) } : DEFAULT_SETTINGS;
     } catch (error) {
       console.error("Failed to load settings:", error);
-    } finally {
-      setIsHydrated(true);
+      return DEFAULT_SETTINGS;
     }
-  }, []);
+  });
+  const isFirstRender = useRef(true);
 
-  // Save settings to localStorage when they change
   useEffect(() => {
-    if (!isHydrated) return;
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
 
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
     } catch (error) {
       console.error("Failed to save settings:", error);
     }
-  }, [settings, isHydrated]);
+  }, [settings]);
 
   const updateSettings = (updates: Partial<Settings>) => {
     setSettings((prev) => ({ ...prev, ...updates }));

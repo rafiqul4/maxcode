@@ -28,39 +28,39 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchResult {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const performSearch = async (searchQuery: string) => {
-    if (!searchQuery.trim() || searchQuery.length < 2) {
-      setResults([]);
-      setError(null);
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const response = await searchQuran(searchQuery);
-      const searchData: SearchData | null = response.data;
-
-      if (!searchData) {
-        setResults([]);
-        setError("No search data returned.");
-        return;
-      }
-
-      setResults(searchData.results.slice(0, maxResults));
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to search";
-      setError(message);
-      setResults([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
     let isActive = true;
     const timeoutId = window.setTimeout(() => {
+      async function performSearch(searchQuery: string) {
+        if (!searchQuery.trim() || searchQuery.length < 2) {
+          setResults([]);
+          setError(null);
+          return;
+        }
+
+        setIsLoading(true);
+        setError(null);
+
+        try {
+          const response = await searchQuran(searchQuery);
+          const searchData: SearchData | null = response.data;
+
+          if (!searchData) {
+            setResults([]);
+            setError("No search data returned.");
+            return;
+          }
+
+          setResults(searchData.results.slice(0, maxResults));
+        } catch (err) {
+          const message = err instanceof Error ? err.message : "Failed to search";
+          setError(message);
+          setResults([]);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+
       if (!isActive) return;
       void performSearch(query);
     }, debounceMs);
@@ -69,7 +69,7 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchResult {
       isActive = false;
       window.clearTimeout(timeoutId);
     };
-  }, [query, debounceMs]);
+  }, [query, debounceMs, maxResults]);
 
   return {
     query,

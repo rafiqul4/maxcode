@@ -77,7 +77,6 @@ export default function ReaderShell({ surah, surahList }: ReaderShellProps) {
     const audio = audioRef.current;
     if (!audio) return;
 
-    const key = `${surahId}:${ayahId}`;
     const isCurrentAyah = activeAyah?.surahId === surahId && activeAyah?.ayahId === ayahId;
 
     // Toggle play/pause if same ayah

@@ -18,7 +18,7 @@ export interface Surah {
   verses: Verse[];
 }
 
-export interface SurahMeta extends Omit<Surah, "verses"> {}
+export type SurahMeta = Omit<Surah, "verses">;
 
 export interface SearchResult {
   surahId: number;
