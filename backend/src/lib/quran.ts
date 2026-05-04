@@ -1,6 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import type { SearchResult, Surah } from "../types/quran.js";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 let quranDataCache: Surah[] | null = null;
 
@@ -13,7 +16,7 @@ function loadQuranData(): Surah[] {
     return quranDataCache;
   }
 
-  const dataPath = path.join(process.cwd(), "data", "quran_en.json");
+  const dataPath = path.join(__dirname, "..", "..", "data", "quran_en.json");
 
   if (!fs.existsSync(dataPath)) {
     throw new Error(`Quran data file not found: ${dataPath}`);
