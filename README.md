@@ -85,20 +85,194 @@ Backend:
 - `NODE_ENV`
 - `CORS_ORIGIN`
 
-## Deployment Notes
+## Deployment Guide
 
-- Frontend root directory for Vercel: `frontend`
-- Backend root directory for Render: `backend`
-- No production code should depend on localhost URLs
-- The backend uses `process.env.PORT` and dotenv-based config loading
-- Production API routes are exposed at `/api/health`, `/api/data`, and `/api/search`
+### Deploy Frontend to Vercel
+
+#### Step 1: Connect Repository
+
+1. Go to [vercel.com](https://vercel.com) and sign in or create an account
+2. Click **"Add New..."** → **"Project"**
+3. Select your GitHub/GitLab/Bitbucket repository
+4. Click **"Import"**
+
+#### Step 2: Configure Project Settings
+
+1. **Project Name**: Enter a project name (e.g., `quran-reader-frontend`)
+2. **Root Directory**: Set to `frontend` (Vercel should auto-detect)
+   - If not auto-detected, click **"Edit"** next to root directory and set to `frontend`
+3. **Framework**: Should auto-detect as "Next.js" ✓
+4. Click **"Continue"**
+
+#### Step 3: Environment Variables
+
+1. In the **Environment Variables** section, add:
+   - **Name**: `NEXT_PUBLIC_API_URL`
+   - **Value**: `https://your-backend.onrender.com` (use your actual Render backend URL)
+   - **Environments**: Select all (Production, Preview, Development)
+2. Click **"Add"**
+3. Click **"Deploy"**
+
+#### Step 4: Deployment Complete
+
+- Vercel will automatically build and deploy your frontend
+- You'll receive a deployment URL like `https://quran-reader-frontend-abc123.vercel.app`
+- Set this URL as your frontend production URL
+
+#### Auto-Deploy on Git Push
+
+- Any push to the default branch automatically triggers a new deployment
+- Preview deployments are created for pull requests
+
+---
+
+### Deploy Backend to Render
+
+#### Step 1: Connect Repository
+
+1. Go to [render.com](https://render.com) and sign in or create an account
+2. Click **"New +"** → **"Web Service"**
+3. Select **"Connect a repository"** or paste your GitHub URL
+4. Authorize Render to access your repository
+5. Select your repository from the list
+
+#### Step 2: Configure Build & Deploy Settings
+
+1. **Name**: Enter a name (e.g., `quran-reader-backend`)
+2. **Environment**: Select "Node"
+3. **Region**: Choose your preferred region (e.g., US or EU)
+4. **Branch**: Verify it's set to your default branch (e.g., `main`)
+5. **Root Directory**: Set to `backend`
+   - In the settings, find "Root Directory" field and enter `backend`
+6. **Build Command**: Enter `npm run build`
+7. **Start Command**: Enter `npm start`
+
+#### Step 3: Environment Variables
+
+Before deploying, scroll down to **Environment** section and add:
+
+1. **PORT**: (Render assigns this automatically, but ensure your app reads `process.env.PORT`)
+2. **NODE_ENV**: `production`
+3. **CORS_ORIGIN**: `https://your-frontend.vercel.app` (use your actual Vercel frontend URL)
+   - If you have multiple frontend URLs or preview deployments, use comma-separated values:
+   - Example: `https://your-frontend.vercel.app,https://your-frontend-preview-abc.vercel.app`
+
+#### Step 4: Deploy
+
+1. Click **"Create Web Service"**
+2. Render will start building your backend
+3. Monitor the build logs (should take 1-2 minutes)
+4. Once deployed, you'll receive a URL like `https://quran-reader-backend-abc123.onrender.com`
+
+#### Step 5: Update Frontend Environment Variable
+
+Now that your backend is deployed, return to Vercel:
+
+1. Go to your Vercel project settings
+2. Navigate to **Settings** → **Environment Variables**
+3. Edit the `NEXT_PUBLIC_API_URL` variable
+4. Update the value to your Render backend URL: `https://quran-reader-backend-abc123.onrender.com`
+5. Save and trigger a redeployment:
+   - Either push a new commit to trigger auto-deploy
+   - Or click **"Redeploy"** in the Deployments tab
+
+---
+
+### Verify Deployment
+
+#### Check Backend Health
+
+```bash
+curl https://your-backend.onrender.com/api/health
+```
+
+Expected response:
+
+```json
+{
+  "success": true,
+  "data": {
+    "status": "healthy",
+    "timestamp": "2024-01-15T10:30:00Z"
+  },
+  "message": "Server is running"
+}
+```
+
+#### Check CORS
+
+If the frontend can't reach the backend, verify CORS:
+
+```bash
+curl -H "Origin: https://your-frontend.vercel.app" \
+  -H "Access-Control-Request-Method: GET" \
+  https://your-backend.onrender.com/api/health
+```
+
+You should see `Access-Control-Allow-Origin` header in the response.
+
+#### Test API Endpoints
+
+- **Health**: `GET https://your-backend.onrender.com/api/health`
+- **Sample Data**: `GET https://your-backend.onrender.com/api/data`
+- **Search**: `GET https://your-backend.onrender.com/api/search?q=allah`
+
+---
+
+### Production API Routes
+
+Once deployed, the backend exposes:
+
+- `/api/health` — Health check endpoint
+- `/api/data` — Sample data endpoint
+- `/api/search` — Quran search endpoint
+
+---
+
+### Troubleshooting
+
+#### "NEXT_PUBLIC_API_URL is not configured"
+
+- **Cause**: Environment variable not set in Vercel
+- **Fix**: Add `NEXT_PUBLIC_API_URL` in Vercel project settings and redeploy
+
+#### "Failed to fetch" in browser console
+
+- **Cause**: CORS not configured or backend URL incorrect
+- **Fix**:
+  1. Verify `CORS_ORIGIN` in Render backend includes your Vercel frontend URL
+  2. Verify `NEXT_PUBLIC_API_URL` in Vercel frontend points to correct Render backend URL
+  3. Test with `curl` to confirm backend is responding
+
+#### Backend cold start delays
+
+- **Cause**: Render spins down free tier services after inactivity
+- **Fix**: Use Render's paid tier for always-on deployments, or add a health check to wake the service
+
+#### Build fails on Vercel
+
+- **Cause**: Missing dependencies or TypeScript errors
+- **Fix**:
+  1. Check Vercel build logs for error details
+  2. Run `npm run build` locally in `frontend/` directory to replicate
+  3. Fix errors and push to trigger rebuild
+
+#### Render build fails
+
+- **Cause**: Root directory not set correctly, or missing dependencies
+- **Fix**:
+  1. Verify root directory is set to `backend` in Render settings
+  2. Run `npm run build` locally in `backend/` directory
+  3. Check Render build logs and push fixes
+
+---
 
 ## Live Demo
 
-Replace these with your actual deployment URLs:
+Once deployed, your application will be available at:
 
-- Frontend: `https://your-frontend.vercel.app`
-- Backend: `https://your-backend.onrender.com`
+- **Frontend**: `https://your-frontend.vercel.app` (replace with your actual Vercel URL)
+- **Backend**: `https://your-backend.onrender.com` (replace with your actual Render URL)
 
 ## Commit Strategy
 
