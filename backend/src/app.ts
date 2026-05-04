@@ -32,9 +32,9 @@ app.get("/", (c) => {
   return c.json(response, 200);
 });
 
-app.route("/search", searchRouter);
-app.route("/health", healthRouter);
-app.route("/data", dataRouter);
+app.route("/api/search", searchRouter);
+app.route("/api/health", healthRouter);
+app.route("/api/data", dataRouter);
 
 app.notFound((c) => {
   const response: ApiResponse<null> = {
